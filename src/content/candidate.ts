@@ -37,5 +37,5 @@ export const candidate: CandidateProfile = {
 export const site: SiteConfig = {
   // Set once the free hosting address is known, e.g.
   // "https://stevehill-oss.github.io/cv-heist" or "https://cv-heist.vercel.app"
-  siteUrl: null,
+  siteUrl: "https://stevehill-oss.github.io/cv-heist",
 };

@@ -1,0 +1,16 @@
+# Build plan
+
+| Build | Scope | Status |
+|---|---|---|
+| 1 | Design system, landing, profile, game intro, CV preview, QR routes and tool | Done 25/10/2026 |
+| 2 | Playable game: state machine, 3 puzzles, hints, progress, replay, reveal | Done 25/10/2026 |
+| 3 | Cinematic polish: vault, puzzles, profile | Not started |
+| 4 | Event readiness: final QR, business card, vCard, share, metadata, deploy | Partly done early (vCard, share, headers, QR tool); card layout and deploy not started |
+| 5 | Real CV integration | Blocked until the CV is supplied |
+
+## Before the event (minimum)
+1. Candidate details into `src/content/candidate.ts`.
+2. Deploy free (see DEPLOYMENT.md), set `site.siteUrl`, redeploy.
+3. `npm run validate:release` passes.
+4. `npm run qr`, scan both codes on a real phone.
+5. Optional: put `/present` on the candidate's phone home screen to show the QR live.

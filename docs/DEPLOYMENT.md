@@ -1,5 +1,15 @@
 # Deployment (free, no domain purchase)
 
+## LIVE: GitHub Pages, chosen by Steve 25/10/2026
+- Address: https://stevehill-oss.github.io/cv-heist/
+- Source: https://github.com/stevehill-oss/cv-heist (public, `main` branch)
+- Built site: `gh-pages` branch. Redeploy after any change: `npm run deploy:pages`
+- Commits use GitHub's no-reply email so Steve's work email stays out of the public history.
+- Final QR codes: `qr-codes/professional.png|svg` and `qr-codes/heist.png|svg`.
+- No security headers on Pages (see Option B limitation below).
+- The GitHub token expires around 16/11/2026. The site stays up after that; only
+  redeploys need a renewed token.
+
 The build output in `out/` is plain static files. Any free static host works. Two options:
 
 ## Option A: Vercel Hobby (free) - recommended

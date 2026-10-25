@@ -10,7 +10,8 @@
 
 ## Before the event (minimum)
 1. Candidate details into `src/content/candidate.ts`.
-2. Deploy free (see DEPLOYMENT.md), set `site.siteUrl`, redeploy.
+2. ~~Deploy free, set `site.siteUrl`~~ Done 25/10: live on GitHub Pages. Redeploy with
+   `npm run deploy:pages` after step 1.
 3. `npm run validate:release` passes.
-4. `npm run qr`, scan both codes on a real phone.
+4. ~~`npm run qr`~~ Done: final codes in `qr-codes/`. Scan both on a real phone.
 5. Optional: put `/present` on the candidate's phone home screen to show the QR live.

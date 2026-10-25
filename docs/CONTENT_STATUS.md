@@ -13,7 +13,7 @@ Source of truth: `src/content/candidate.ts`. Last checked 25/10/2026.
 | Certifications, education | Empty | Not supplied |
 | CV PDF | Not supplied | `cvStatus: "preview"` |
 | Photo | Not used | Brief forbids using the LinkedIn photo without permission |
-| Public site URL | Not set | Free host not chosen yet |
+| Public site URL | Set | https://stevehill-oss.github.io/cv-heist (live 25/10/2026) |
 
 Nothing was taken from LinkedIn: no URL was supplied, and LinkedIn blocks automated reading.
 

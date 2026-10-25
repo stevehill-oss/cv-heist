@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { site } from "../../src/content/candidate";
 
 const noOverflow = async (page: Page) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -65,12 +66,15 @@ test.describe("placeholder honesty (no candidate details configured yet)", () =>
     await expect(page.getByTestId("pending-section")).toHaveCount(3);
   });
 
-  test("QR screen is clearly marked as preview and points at a real route", async ({ page, baseURL }) => {
+  test("QR screen points at the configured routes, or is marked preview without one", async ({ page, baseURL }) => {
     await page.goto("/present/");
-    await expect(page.getByTestId("qr-preview-note")).toBeVisible();
-    await expect(page.getByTestId("qr-url")).toHaveText(`${baseURL}/profile/`);
+    const root = site.siteUrl ?? baseURL;
+    if (site.siteUrl) await expect(page.getByTestId("qr-preview-note")).toHaveCount(0);
+    else await expect(page.getByTestId("qr-preview-note")).toBeVisible();
+    await expect(page.getByTestId("qr-url")).toHaveText(`${root}/profile/`);
+    await expect(page.locator("[data-qr-value]")).toHaveAttribute("data-qr-value", `${root}/profile/`);
     await page.getByRole("tab", { name: /Hacker/ }).click();
-    await expect(page.getByTestId("qr-url")).toHaveText(`${baseURL}/heist/`);
+    await expect(page.getByTestId("qr-url")).toHaveText(`${root}/heist/`);
     await expect(page.locator("[data-qr-value] svg")).toBeVisible();
   });
 });

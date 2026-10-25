@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "screenshots": "node scripts/screenshots.mjs",
     "qr": "node scripts/generate-qr.mjs",
-    "validate:release": "node scripts/validate-release.mjs"
+    "deploy:pages": "node scripts/deploy-pages.mjs",
+    "validate:release":"node scripts/validate-release.mjs"
   },
   "dependencies": {
     "next": "16.4.3",

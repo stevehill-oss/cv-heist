@@ -1,0 +1,28 @@
+2:"$Sreact.fragment"
+3:"/cv-heist/_next/static/chunks/27gjg8e11zukd.js"
+4:I[39756,["$3"],"default"]
+5:I[37457,["$3"],"default"]
+a:"/cv-heist/_next/static/chunks/3uliktfbfucyr.js"
+b:"/cv-heist/_next/static/chunks/42xzt8zt6uguy.js"
+c:I[71158,["$3","$a","$b"],"Presenter"]
+d:I[97367,["$3"],"OutletBoundary"]
+e:"$Sreact.suspense"
+11:"ViewportBoundary"
+12:I[97367,["$3"],"$11"]
+13:"MetadataBoundary"
+14:I[97367,["$3"],"$13"]
+15:I[27201,["$3"],"IconMark"]
+7:X
+7:C
+8:X
+9:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$2","c",{"children":[["$","div",null,{"className":"px-4 pt-8 sm:pt-12","children":[["$","p",null,{"className":"eyebrow mb-6 text-center","children":"Hold up your phone. Let them scan."}],["$","$Lc",null,{}]]}],[["$","script","script-0",{"src":"/cv-heist/_next/static/chunks/3uliktfbfucyr.js","async":true}],["$","script","script-1",{"src":"/cv-heist/_next/static/chunks/42xzt8zt6uguy.js","async":true}]],["$","$Ld",null,{"children":["$","$e",null,{"name":"Next.MetadataOutlet","children":"$@f"}]}]]}],"p":"$@10","v":null,"s":"$8"}}]]
+1:[["children",{"s":"present","h":64,"d":{"r":["$","$2","c",{"children":[null,["$","$L4",null,{"parallelRouterKey":"children","template":["$","$L5",null,{}]}]]}],"p":"$@6","v":"$7","s":"$8"},"c":"$Q9"}]]
+0:{"t":{"t":{"s":"","h":16,"c":"$Q1"},"h":{"r":["$","$2","h",{"children":[null,["$","$L12",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1, viewport-fit=cover"}],["$","meta","2",{"name":"theme-color","content":"#080c12"}]]}],["$","$L14",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$e",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"QR codes · The CV Heist"}],["$","meta","1",{"name":"description","content":"Daniel O.. View the professional profile, or try to crack the vault and steal the CV."}],["$","meta","2",{"name":"robots","content":"noindex, nofollow"}],["$","meta","3",{"property":"og:title","content":"Think you can steal my CV?"}],["$","meta","4",{"property":"og:description","content":"Three clues, one locked vault, one account. Or skip straight to the professional profile."}],["$","meta","5",{"property":"og:type","content":"website"}],["$","meta","6",{"name":"twitter:card","content":"summary"}],["$","meta","7",{"name":"twitter:title","content":"Think you can steal my CV?"}],["$","meta","8",{"name":"twitter:description","content":"Three clues, one locked vault, one account. Or skip straight to the professional profile."}],["$","link","9",{"rel":"icon","href":"/cv-heist/favicon.svg"}],["$","$L15","10",{}]]}]}],null]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"p":"$@16","v":null,"s":"$8"}},"a":"$@17","u":"$@18","b":"RmO07txr2FgInxG5R3tYS"}
+f:null
+18:true
+8:300
+8:C
+17:0
+6:"$undefined"
+16:"$undefined"
+10:"$undefined"

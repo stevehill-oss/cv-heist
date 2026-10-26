@@ -10,7 +10,7 @@ const quick = process.argv.includes("--quick");
 const out = "docs/screenshots";
 mkdirSync(out, { recursive: true });
 
-const pages = ["/", "/profile/", "/heist/", "/cv/", "/present/"];
+const pages = ["/", "/profile/", "/heist/", "/cv/", "/present/", "/account/"];
 const widths = quick ? [390, 1440] : [320, 360, 375, 390, 430, 768, 1024, 1440, 1920];
 const problems = [];
 
@@ -66,8 +66,15 @@ for (const w of [390, 1440]) {
   await page.getByTestId("key-1").click();
   await page.getByTestId("key-enter").click();
   await page.getByTestId("continue").click();
+  await page.getByTestId("password-input").fill("password123");
+  await page.getByTestId("sign-in").click();
+  await page.getByRole("button", { name: "Need a hint?" }).click();
+  await shot("4-login");
+  await page.getByTestId("password-input").fill("password443");
+  await page.getByTestId("sign-in").click();
+  await page.getByTestId("continue").click();
   await page.waitForTimeout(600);
-  await shot("4-reveal");
+  await shot("5-reveal");
   await ctx.close();
 }
 

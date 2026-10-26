@@ -16,12 +16,14 @@ import type { CandidateProfile, SiteConfig } from "@/lib/profile";
 // ---------------------------------------------------------------------------
 
 export const candidate: CandidateProfile = {
-  name: null,
+  // From the LinkedIn address Steve supplied 26/10/2026 (/in/daniel-ogunseye).
+  // Confirm the spelling with Daniel before printing.
+  name: "Daniel Ogunseye",
   headline: "Cybersecurity Professional",
   headlineStatus: "manual",
   location: null,
   summary: null,
-  linkedinUrl: null,
+  linkedinUrl: "https://www.linkedin.com/in/daniel-ogunseye/",
   email: null,
   phone: null,
   website: null,

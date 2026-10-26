@@ -7,7 +7,10 @@ import {
   countSuccessfulGuestVaultRequests,
   decodedCipher,
   gameReducer,
+  hintsFor,
   initialState,
+  stagesDone,
+  totals,
   isBreach,
   normaliseShift,
   progress,
@@ -126,10 +129,50 @@ describe("stage 3: vault", () => {
   });
 });
 
-describe("flow, hints and reset", () => {
-  it("full game reaches the open vault", () => {
-    const s = run([...toVault, ...digits("471"), { type: "SUBMIT_CODE" }, { type: "CONTINUE" }]);
+describe("stage 4: account login", () => {
+  const toLogin: GameAction[] = [...toVault, ...digits("471"), { type: "SUBMIT_CODE" }, { type: "CONTINUE" }];
+
+  it("the open vault leads to the login, not straight to the reveal", () => {
+    const s = run(toLogin);
+    expect(s.stage).toBe("login");
+    expect(stagesDone(s)).toBe(3);
+  });
+
+  it("wrong password is counted, right one signs in", () => {
+    const wrong = run([...toLogin, { type: "SUBMIT_PASSWORD", input: "password123", at: 1 }]);
+    expect(wrong.solved).toBe(false);
+    expect(wrong.login.attempts).toBe(1);
+    expect(wrong.feedback?.message).toMatch(/smarter/);
+    const right = run([{ type: "SUBMIT_PASSWORD", input: " Password443 ", at: 2 }], wrong);
+    expect(right.solved).toBe(true);
+    expect(stagesDone(right)).toBe(4);
+  });
+
+  it("login hints use their own list", () => {
+    const s = run([...toLogin, { type: "SHOW_HINT" }]);
+    expect(hintsFor(s).shown[0]).toMatch(/Riddle/);
+  });
+
+  it("password cannot be submitted outside its stage", () => {
+    expect(run([{ type: "START" }, { type: "SUBMIT_PASSWORD", input: "password443", at: 1 }]).login.success).toBe(false);
+  });
+
+  it("finishing records the time and totals include the login", () => {
+    const s = run([
+      ...toLogin.map((a) => (a.type === "START" ? { type: "START", at: 1_000 } as GameAction : a)),
+      { type: "SUBMIT_PASSWORD", input: "letmein", at: 2_000 },
+      { type: "SUBMIT_PASSWORD", input: "password443", at: 3_000 },
+      { type: "CONTINUE", at: 61_000 },
+    ]);
     expect(s.stage).toBe("open");
+    expect(totals(s)).toEqual({ hints: 0, misses: 1, seconds: 60 });
+  });
+});
+
+describe("flow, hints and reset", () => {
+  it("cannot reach the reveal without the password", () => {
+    const s = run([...toVault, ...digits("471"), { type: "SUBMIT_CODE" }, { type: "CONTINUE" }, { type: "CONTINUE" }]);
+    expect(s.stage).toBe("login");
   });
 
   it("cannot continue before solving", () => {

@@ -2,6 +2,10 @@
 // unit tested in tests/unit/game.test.ts. The vault is a game mechanic only,
 // it protects nothing.
 
+import { LOGIN_HINTS, initialLogin, isValidLogin, showLoginHint, submitPassword, type Feedback, type LoginState } from "./account";
+
+export type { Feedback } from "./account";
+
 export interface LogEntry {
   id: string;
   method: "GET";
@@ -62,14 +66,12 @@ export const BREACH_LOG = LOGS.find(isBreach)!;
 export const VAULT_CODE =
   logFragment(BREACH_LOG) + wordToDigit(CIPHER_ANSWER)! + String(countSuccessfulGuestVaultRequests(LOGS));
 
-export type Stage = "intro" | "logs" | "cipher" | "vault" | "open";
+export type Stage = "intro" | "logs" | "cipher" | "vault" | "login" | "open";
 export type PuzzleStage = "logs" | "cipher" | "vault";
 export const PUZZLE_STAGES: readonly PuzzleStage[] = ["logs", "cipher", "vault"];
-
-export interface Feedback {
-  kind: "success" | "error" | "info";
-  message: string;
-}
+/** Every stage the progress bar shows, the account login last. */
+export const ALL_STAGES = ["logs", "cipher", "vault", "login"] as const;
+export type PlayStage = (typeof ALL_STAGES)[number];
 
 export interface GameState {
   stage: Stage;
@@ -82,6 +84,10 @@ export interface GameState {
   attempts: Record<PuzzleStage, number>;
   hintsShown: Record<PuzzleStage, number>;
   feedback: Feedback | null;
+  login: LoginState;
+  /** Epoch ms, for the time on the reveal screen. */
+  startedAt: number | null;
+  finishedAt: number | null;
 }
 
 export const HINTS: Record<PuzzleStage, readonly string[]> = {
@@ -109,10 +115,13 @@ export const initialState: GameState = {
   attempts: { logs: 0, cipher: 0, vault: 0 },
   hintsShown: { logs: 0, cipher: 0, vault: 0 },
   feedback: null,
+  login: initialLogin,
+  startedAt: null,
+  finishedAt: null,
 };
 
 export type GameAction =
-  | { type: "START" }
+  | { type: "START"; at?: number }
   | { type: "SELECT_LOG"; id: string }
   | { type: "SUBMIT_LOG" }
   | { type: "SHIFT_CIPHER"; delta: number }
@@ -120,8 +129,9 @@ export type GameAction =
   | { type: "PRESS_DIGIT"; digit: string }
   | { type: "DELETE_DIGIT" }
   | { type: "SUBMIT_CODE" }
+  | { type: "SUBMIT_PASSWORD"; input: string; at: number }
   | { type: "SHOW_HINT" }
-  | { type: "CONTINUE" }
+  | { type: "CONTINUE"; at?: number }
   | { type: "RESET" }
   | { type: "RESTORE"; state: GameState };
 
@@ -146,7 +156,7 @@ export function decodedCipher(state: GameState): string {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "START":
-      return { ...initialState, stage: "logs" };
+      return { ...initialState, stage: "logs", startedAt: action.at ?? null };
 
     case "RESET":
       return initialState;
@@ -240,7 +250,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case "SUBMIT_PASSWORD": {
+      if (state.stage !== "login" || state.solved) return state;
+      const login = submitPassword(state.login, action.input, action.at);
+      return { ...state, login, solved: login.success, feedback: login.feedback };
+    }
+
     case "SHOW_HINT": {
+      if (state.stage === "login") return { ...state, login: showLoginHint(state.login) };
       if (!isPuzzle(state.stage)) return state;
       const shown = state.hintsShown[state.stage];
       if (shown >= HINTS[state.stage].length) return state;
@@ -249,7 +266,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case "CONTINUE": {
       if (!state.solved) return state;
-      const next: Record<PuzzleStage, Stage> = { logs: "cipher", cipher: "vault", vault: "open" };
+      if (state.stage === "login") return { ...state, stage: "open", solved: false, feedback: null, finishedAt: action.at ?? null };
+      const next: Record<PuzzleStage, Stage> = { logs: "cipher", cipher: "vault", vault: "login" };
       if (!isPuzzle(state.stage)) return state;
       return { ...state, stage: next[state.stage], solved: false, feedback: null };
     }
@@ -272,14 +290,38 @@ export function isValidState(s: unknown): s is GameState {
   if (!s || typeof s !== "object") return false;
   const g = s as GameState;
   return (
-    ["intro", "logs", "cipher", "vault", "open"].includes(g.stage) &&
+    ["intro", "logs", "cipher", "vault", "login", "open"].includes(g.stage) &&
     typeof g.solved === "boolean" &&
     typeof g.cipherShift === "number" &&
     typeof g.code === "string" &&
-    !!g.fragments && !!g.attempts && !!g.hintsShown
+    !!g.fragments && !!g.attempts && !!g.hintsShown &&
+    isValidLogin(g.login)
   );
 }
 
+/** Vault fragments recovered, 0 to 3. */
 export function progress(state: GameState): number {
   return [state.fragments.logs, state.fragments.cipher, state.fragments.vault].filter(Boolean).length;
+}
+
+/** Stages finished out of the four, the login included. */
+export function stagesDone(state: GameState): number {
+  return progress(state) + (state.login.success ? 1 : 0);
+}
+
+/** Hints for whichever stage is on screen. */
+export function hintsFor(state: GameState): { shown: readonly string[]; more: boolean } {
+  if (state.stage === "login") {
+    return { shown: LOGIN_HINTS.slice(0, state.login.hintsShown), more: state.login.hintsShown < LOGIN_HINTS.length };
+  }
+  if (!isPuzzle(state.stage)) return { shown: [], more: false };
+  const n = state.hintsShown[state.stage];
+  return { shown: HINTS[state.stage].slice(0, n), more: n < HINTS[state.stage].length };
+}
+
+export function totals(state: GameState): { hints: number; misses: number; seconds: number | null } {
+  const hints = state.hintsShown.logs + state.hintsShown.cipher + state.hintsShown.vault + state.login.hintsShown;
+  const misses = state.attempts.logs + state.attempts.cipher + state.attempts.vault + state.login.attempts;
+  const seconds = state.startedAt && state.finishedAt ? Math.max(0, Math.round((state.finishedAt - state.startedAt) / 1000)) : null;
+  return { hints, misses, seconds };
 }

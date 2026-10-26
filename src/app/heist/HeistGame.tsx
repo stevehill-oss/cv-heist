@@ -7,15 +7,21 @@ import { ArrowRight, BulbIcon, CheckIcon, FileIcon, LockIcon, ReplayIcon } from 
 import { LinkedInLink } from "@/components/ProfileLinks";
 import { Vault } from "@/components/Vault";
 import { candidate } from "@/content/candidate";
-import { HINTS, PUZZLE_STAGES, VAULT_CODE, gameReducer, initialState, isValidState, progress, type GameState, type PuzzleStage } from "@/lib/game";
+import { ACCOUNT_SESSION_KEY, accountUsername, formatDuration, heistRank } from "@/lib/account";
+import { ALL_STAGES, VAULT_CODE, gameReducer, hintsFor, initialState, isValidState, stagesDone, totals, type GameState, type PlayStage } from "@/lib/game";
 import { ROUTES, cvLabels, displayName } from "@/lib/profile";
-import { CipherStage, LogStage, VaultStage } from "./stages";
+import { CipherStage, LogStage, LoginStage, VaultStage } from "./stages";
 
 const STORAGE_KEY = "cv-heist:game";
-const STAGE_META: Record<PuzzleStage, { n: string; title: string; prompt: string }> = {
+const STAGE_META: Record<PlayStage, { n: string; title: string; prompt: string }> = {
   logs: { n: "01", title: "Find the weakness", prompt: "One request should never have succeeded. Find it." },
   cipher: { n: "02", title: "Crack the cipher", prompt: "Intercepted message. The sender is always one letter ahead." },
   vault: { n: "03", title: "Unlock the vault", prompt: "Two fragments recovered. The last digit is hiding in the logs." },
+  login: {
+    n: "04",
+    title: "Break into the account",
+    prompt: "Inside the vault: a laptop, still signed out. Its owner works in security, so the password must be strong. Surely.",
+  },
 };
 
 function loadSaved(): GameState | null {
@@ -52,6 +58,16 @@ export function HeistGame() {
     }
   }, [state]);
 
+  // Cracking the account here also signs you in on the /account page.
+  useEffect(() => {
+    if (!state.login.success) return;
+    try {
+      sessionStorage.setItem(ACCOUNT_SESSION_KEY, "1");
+    } catch {
+      /* storage blocked: /account will just ask again */
+    }
+  }, [state.login.success]);
+
   // Move focus to the new stage heading so keyboard and screen-reader users land in the right place.
   useEffect(() => {
     if (prevStage.current !== state.stage) {
@@ -62,20 +78,19 @@ export function HeistGame() {
     }
   }, [state.stage]);
 
-  if (state.stage === "intro") return <Intro onStart={() => dispatch({ type: "START" })} />;
+  if (state.stage === "intro") return <Intro onStart={() => dispatch({ type: "START", at: Date.now() })} />;
   if (state.stage === "open") return <Reveal state={state} headingRef={headingRef} onReplay={() => dispatch({ type: "RESET" })} />;
 
   const stage = state.stage;
   const meta = STAGE_META[stage];
-  const hints = HINTS[stage].slice(0, state.hintsShown[stage]);
-  const moreHints = state.hintsShown[stage] < HINTS[stage].length;
+  const { shown: hints, more: moreHints } = hintsFor(state);
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6 sm:pt-10">
       <GameBar state={state} onAbandon={() => dispatch({ type: "RESET" })} />
 
       <section aria-labelledby="stage-title" className="mt-6 sm:mt-8">
-        <p className="eyebrow">Stage {meta.n} of 03</p>
+        <p className="eyebrow">Stage {meta.n} of 04</p>
         <h1 id="stage-title" ref={headingRef} tabIndex={-1} className="mt-2 scroll-mt-20 text-3xl font-semibold outline-none sm:text-4xl">
           {meta.title}
         </h1>
@@ -85,9 +100,10 @@ export function HeistGame() {
           {stage === "logs" && <LogStage state={state} dispatch={dispatch} />}
           {stage === "cipher" && <CipherStage state={state} dispatch={dispatch} />}
           {stage === "vault" && <VaultStage state={state} dispatch={dispatch} />}
+          {stage === "login" && <LoginStage state={state} dispatch={dispatch} />}
         </div>
 
-        <FeedbackBar state={state} onContinue={() => dispatch({ type: "CONTINUE" })} />
+        <FeedbackBar state={state} onContinue={() => dispatch({ type: "CONTINUE", at: Date.now() })} />
 
         <div className="mt-6 flex flex-col gap-3">
           {hints.length > 0 && (
@@ -124,11 +140,11 @@ function Intro({ onStart }: { onStart: () => void }) {
           Think you can <span className="text-amber">steal</span> my CV?
         </h1>
         <p className="rise rise-3 mt-5 max-w-md text-lg text-ink-2">
-          Three clues. One locked vault. Your mission: find the weakness, crack the code and take the file.
+          Three clues, one locked vault, one account. Find the weakness, crack the code, guess the password and take the file.
         </p>
 
-        <ol className="rise rise-3 mt-7 grid grid-cols-3 gap-2" aria-label="The three stages">
-          {PUZZLE_STAGES.map((s) => (
+        <ol className="rise rise-3 mt-7 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="The four stages">
+          {ALL_STAGES.map((s) => (
             <li key={s} className="rounded-xl border border-line/80 bg-card/60 px-3 py-2.5">
               <span className="font-mono text-[0.65rem] text-ink-2">{STAGE_META[s].n}</span>
               <span className="mt-0.5 block text-xs leading-snug text-ink sm:text-sm">{STAGE_META[s].title}</span>
@@ -139,7 +155,7 @@ function Intro({ onStart }: { onStart: () => void }) {
         <button type="button" onClick={onStart} className="btn btn-primary rise rise-4 mt-7 w-full text-lg sm:w-auto sm:px-8" data-testid="start-heist">
           START THE HEIST <ArrowRight />
         </button>
-        <p className="mt-3 font-mono text-xs text-ink-2">About a minute. No technical knowledge needed.</p>
+        <p className="mt-3 font-mono text-xs text-ink-2">About 90 seconds. You're on the clock. No technical knowledge needed.</p>
 
         <div className="mt-8 flex flex-wrap gap-3 border-t border-line/60 pt-6">
           <Link href={ROUTES.profile} className="btn btn-secondary flex-1 sm:flex-none">Professional Profile</Link>
@@ -152,19 +168,19 @@ function Intro({ onStart }: { onStart: () => void }) {
 }
 
 function GameBar({ state, onAbandon }: { state: GameState; onAbandon: () => void }) {
-  const got = progress(state);
+  const got = stagesDone(state);
   const slots = [state.fragments.logs, state.fragments.cipher, state.fragments.vault];
   return (
     <div className="glass flex items-center gap-3 p-2.5 sm:gap-4 sm:p-3">
-      <ol className="flex items-center gap-1.5" aria-label={`Progress: ${got} of 3 stages complete`}>
-        {PUZZLE_STAGES.map((s, i) => {
-          const done = !!slots[i];
+      <ol className="flex items-center gap-1.5" aria-label={`Progress: ${got} of 4 stages complete`}>
+        {ALL_STAGES.map((s, i) => {
+          const done = s === "login" ? state.login.success : !!slots[i];
           const current = state.stage === s;
           return (
             <li
               key={s}
               aria-current={current ? "step" : undefined}
-              className={`h-2 rounded-full transition-all duration-500 ${done ? "w-8 bg-lime" : current ? "w-8 bg-cyan" : "w-4 bg-line"}`}
+              className={`h-2 rounded-full transition-all duration-500 ${done ? "w-6 bg-lime sm:w-8" : current ? "w-6 bg-cyan sm:w-8" : "w-3 bg-line sm:w-4"}`}
             >
               <span className="sr-only">{STAGE_META[s].title}: {done ? "done" : current ? "in progress" : "locked"}</span>
             </li>
@@ -200,7 +216,11 @@ function FeedbackBar({ state, onContinue }: { state: GameState; onContinue: () =
   const fb = state.feedback;
   // Re-key on every new message so the shake replays and screen readers re-announce.
   const tone = !fb ? "" : fb.kind === "success" ? "border-lime/50 bg-lime/[0.08] text-lime" : fb.kind === "error" ? "border-danger/50 bg-danger/[0.08] text-danger shake" : "border-cyan/40 bg-cyan/[0.06] text-cyan";
-  const attempts = state.stage === "logs" || state.stage === "cipher" || state.stage === "vault" ? state.attempts[state.stage] : 0;
+  const attempts =
+    state.stage === "login" ? state.login.attempts
+    : state.stage === "logs" || state.stage === "cipher" || state.stage === "vault" ? state.attempts[state.stage]
+    : 0;
+  const next = state.stage === "vault" ? "Open the vault" : state.stage === "login" ? "Open the dossier" : "Next stage";
   return (
     <div className="mt-5 min-h-[3.5rem]">
       <div role="status" aria-live="polite" aria-atomic="true">
@@ -213,7 +233,7 @@ function FeedbackBar({ state, onContinue }: { state: GameState; onContinue: () =
       </div>
       {state.solved && (
         <button type="button" onClick={onContinue} className="btn btn-lime mt-4 w-full sm:w-auto" autoFocus data-testid="continue">
-          {state.stage === "vault" ? "Open the vault" : "Next stage"} <ArrowRight />
+          {next} <ArrowRight />
         </button>
       )}
     </div>
@@ -229,8 +249,10 @@ function Reveal({ state, headingRef, onReplay }: { state: GameState; headingRef:
     const t = setTimeout(() => setShown(true), reduce ? 0 : 1900);
     return () => clearTimeout(t);
   }, []);
-  const hints = state.hintsShown.logs + state.hintsShown.cipher + state.hintsShown.vault;
-  const misses = state.attempts.logs + state.attempts.cipher + state.attempts.vault;
+  const { hints, misses, seconds } = totals(state);
+  const rank = heistRank(hints, misses, seconds);
+  const time = seconds === null ? null : formatDuration(seconds);
+  const brag = `I cracked the CV Heist${time ? ` in ${time}` : ""} and ranked ${rank.title}. Think you can beat that?`;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 sm:pt-12">
@@ -254,11 +276,20 @@ function Reveal({ state, headingRef, onReplay }: { state: GameState; headingRef:
           </p>
 
           <div className="glass glow-edge mt-6 p-5" aria-label="Professional dossier">
-            <p className="eyebrow">{complete ? "Recovered file" : "Professional dossier"}</p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="eyebrow">{complete ? "Recovered file" : "Professional dossier"}</p>
+              <span className="font-mono text-[0.65rem] text-lime">signed in as {accountUsername(candidate.name)}</span>
+            </div>
             <p className="mt-2 font-display text-2xl font-semibold">{displayName(candidate)}</p>
             <p className="text-cyan">{candidate.headline}</p>
+            <div className="mt-4 flex items-center gap-3 border-t border-line/60 pt-4" data-testid="rank">
+              <span className="rounded-lg border border-amber/50 bg-amber/10 px-2.5 py-1 font-mono text-sm font-semibold uppercase tracking-wider text-amber">
+                {rank.title}
+              </span>
+              <p className="text-sm text-ink-2">{rank.line}</p>
+            </div>
             <p className="mt-3 font-mono text-xs text-ink-2">
-              {`Code ${VAULT_CODE} · ${hints} hint${hints === 1 ? "" : "s"} · ${misses} wrong guess${misses === 1 ? "" : "es"}`}
+              {`${time ? `Time ${time} · ` : ""}Code ${VAULT_CODE} · ${hints} hint${hints === 1 ? "" : "s"} · ${misses} wrong guess${misses === 1 ? "" : "es"}`}
             </p>
           </div>
 
@@ -269,7 +300,7 @@ function Reveal({ state, headingRef, onReplay }: { state: GameState; headingRef:
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" onClick={onReplay} className="btn btn-ghost !px-0" data-testid="replay"><ReplayIcon /> Play again</button>
-            <ShareButton route={ROUTES.heist} title="The CV Heist" text="Think you can steal this CV? Three clues, one vault." className="btn btn-ghost" />
+            <ShareButton route={ROUTES.heist} title="The CV Heist" text={brag} className="btn btn-ghost" />
           </div>
         </section>
       </div>

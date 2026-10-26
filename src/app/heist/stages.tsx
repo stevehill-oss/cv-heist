@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, type Dispatch, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, BackspaceIcon, CheckIcon } from "@/components/icons";
+import { ArrowLeft, ArrowRight, BackspaceIcon, CheckIcon, LockIcon } from "@/components/icons";
+import { LoginForm } from "@/components/LoginForm";
 import { Vault } from "@/components/Vault";
+import { candidate } from "@/content/candidate";
+import { accountUsername } from "@/lib/account";
 import {
   CIPHER_TEXT,
   CODE_LENGTH,
@@ -283,6 +286,32 @@ export function VaultStage({ state, dispatch }: StageProps) {
         </div>
         <p className="mt-3 text-center font-mono text-[0.68rem] text-ink-2">Keyboard works too: digits, Backspace, Enter</p>
       </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- stage 4 */
+
+export function LoginStage({ state, dispatch }: StageProps) {
+  return (
+    <div className="grid items-center gap-8 md:grid-cols-[0.8fr_1.2fr] md:gap-10">
+      <div className="mx-auto hidden w-56 md:block">
+        <Vault progress={3} status="open">
+          <div className="flex flex-col items-center gap-2 text-amber">
+            <LockIcon width={40} height={40} />
+            <span className="font-mono text-[0.6rem] tracking-[0.2em]">SIGNED OUT</span>
+          </div>
+        </Vault>
+      </div>
+      <LoginForm
+        username={accountUsername(candidate.name)}
+        login={state.login}
+        hints={[]}
+        moreHints={false}
+        showFeedback={false}
+        onSubmit={(input) => dispatch({ type: "SUBMIT_PASSWORD", input, at: Date.now() })}
+        onHint={() => dispatch({ type: "SHOW_HINT" })}
+      />
     </div>
   );
 }

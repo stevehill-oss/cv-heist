@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: `${who}. View the professional profile, or try to crack the vault and steal the CV.`,
   openGraph: {
     title: "Think you can steal my CV?",
-    description: "Three clues. One locked vault. Or skip straight to the professional profile.",
+    description: "Three clues, one locked vault, one account. Or skip straight to the professional profile.",
     type: "website",
   },
   robots: { index: false, follow: false },

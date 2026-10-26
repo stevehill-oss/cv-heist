@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { candidate } from "@/content/candidate";
 import { ROUTES, cvLabels, initials } from "@/lib/profile";
-import { LinkedInIcon, QrIcon } from "./icons";
+import { LinkedInIcon, QrIcon, UserIcon } from "./icons";
 
 export function SiteHeader() {
   return (
@@ -23,6 +23,9 @@ export function SiteHeader() {
         </Link>
         <Link href={ROUTES.cv} className="hidden rounded-lg px-3 py-2 text-sm text-ink-2 hover:text-ink sm:inline">
           {cvLabels(candidate).short}
+        </Link>
+        <Link href={ROUTES.account} className="grid h-10 w-10 place-items-center rounded-lg text-ink-2 hover:text-ink" aria-label="Account sign-in" data-testid="nav-account">
+          <UserIcon />
         </Link>
         <Link href={ROUTES.present} className="grid h-10 w-10 place-items-center rounded-lg text-ink-2 hover:text-ink" aria-label="Show QR codes">
           <QrIcon />
@@ -53,9 +56,10 @@ export function SiteFooter() {
     <footer className="mx-auto mt-24 max-w-6xl px-4 pb-10 text-xs text-ink-2 sm:px-6">
       <div className="flex flex-col gap-3 border-t border-line/60 pt-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="font-mono tracking-wide">THE CV HEIST · the vault is a game, it guards nothing real</p>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 whitespace-nowrap">
           <Link href={ROUTES.profile} className="hover:text-ink">Profile</Link>
           <Link href={ROUTES.heist} className="hover:text-ink">Play</Link>
+          <Link href={ROUTES.account} className="hover:text-ink">Account</Link>
           <Link href={ROUTES.cv} className="hover:text-ink">{cvLabels(candidate).short}</Link>
           <Link href={ROUTES.present} className="hover:text-ink">QR codes</Link>
         </div>

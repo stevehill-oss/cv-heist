@@ -3,7 +3,7 @@ import { HeistGame } from "./HeistGame";
 
 export const metadata: Metadata = {
   title: "Steal my CV",
-  description: "Three clues. One locked vault. Find the weakness, crack the code and take the file.",
+  description: "Three clues, one locked vault, one account. Find the weakness, crack the code, guess the password.",
 };
 
 export default function HeistPage() {

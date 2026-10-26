@@ -3,6 +3,10 @@
 - **No backend, no database, no forms, no tracking.** Static files only.
 - **The vault is not access control.** The code (471) is in the shipped JavaScript by
   design. Nothing sensitive sits behind it; the dossier shows public profile details only.
+- **The account login (added 26/10/2026) is not access control either.** The password
+  (`password443`) is in the shipped JavaScript and the public repo, and is checked in the
+  browser. The "lockout" is a joke, reset by a refresh. Only put public details behind it.
+  Typed passwords are never stored or sent; only a signed-in flag goes in sessionStorage.
 - **Headers** (in `vercel.json`, mirrored by `scripts/serve.mjs`, checked by an e2e test):
   CSP `default-src 'self'` with `frame-ancestors 'none'`, `object-src 'none'`;
   `X-Content-Type-Options: nosniff`; `X-Frame-Options: DENY`; strict Referrer-Policy;

@@ -184,7 +184,7 @@ export default function ProfilePage() {
           <Link href={ROUTES.heist} className="glass glow-edge amber group block p-6 transition-transform hover:-translate-y-0.5">
             <p className="eyebrow flex items-center gap-2"><LockIcon width={14} height={14} /> Side quest</p>
             <p className="mt-3 font-display text-2xl font-semibold">Think you can steal my CV?</p>
-            <p className="mt-2 text-sm text-ink-2">Three clues, one vault, about a minute. No technical knowledge needed.</p>
+            <p className="mt-2 text-sm text-ink-2">Three clues, one vault, one locked account. About 90 seconds, with a rank at the end.</p>
             <span className="mt-5 inline-flex items-center gap-2 font-display font-semibold text-amber">
               Start the heist <ArrowRight className="transition-transform group-hover:translate-x-1" />
             </span>

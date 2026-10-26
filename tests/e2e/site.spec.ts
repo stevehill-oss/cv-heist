@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { site } from "../../src/content/candidate";
+import { candidate, site } from "../../src/content/candidate";
 
 const noOverflow = async (page: Page) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -7,7 +7,7 @@ const noOverflow = async (page: Page) => {
 };
 
 test.describe("routes and navigation", () => {
-  for (const path of ["/", "/profile/", "/heist/", "/cv/", "/present/"]) {
+  for (const path of ["/", "/profile/", "/heist/", "/cv/", "/present/", "/account/"]) {
     test(`${path} loads cleanly`, async ({ page }) => {
       const errors: string[] = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -34,12 +34,14 @@ test.describe("routes and navigation", () => {
   });
 
   test("landing doors lead to both experiences", async ({ page }) => {
-    await page.goto("/");
+    // Wait for the page to settle: under parallel load the first client-side
+    // navigation can take a few seconds.
+    await page.goto("/", { waitUntil: "load" });
     await page.getByTestId("door-professional").click();
-    await expect(page).toHaveURL(/\/profile\/$/);
-    await page.goto("/");
+    await expect(page).toHaveURL(/\/profile\/$/, { timeout: 15_000 });
+    await page.goto("/", { waitUntil: "load" });
     await page.getByTestId("door-hacker").click();
-    await expect(page).toHaveURL(/\/heist\/$/);
+    await expect(page).toHaveURL(/\/heist\/$/, { timeout: 15_000 });
   });
 
   test("CV preview opens from the profile and is labelled as a preview", async ({ page }) => {
@@ -50,19 +52,27 @@ test.describe("routes and navigation", () => {
   });
 });
 
-test.describe("placeholder honesty (no candidate details configured yet)", () => {
-  test("LinkedIn shows a labelled placeholder, never a dead link", async ({ page }) => {
+test.describe("placeholder honesty", () => {
+  test("LinkedIn is the configured link, or a labelled placeholder, never a dead link", async ({ page }) => {
     for (const path of ["/", "/profile/", "/heist/", "/cv/"]) {
       await page.goto(path);
-      await expect(page.getByTestId("linkedin-placeholder").first()).toBeVisible();
-      await expect(page.getByTestId("linkedin-link")).toHaveCount(0);
+      if (candidate.linkedinUrl) {
+        const link = page.getByTestId("linkedin-link").first();
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute("href", candidate.linkedinUrl);
+        await expect(link).toHaveAttribute("target", "_blank");
+        await expect(page.getByTestId("linkedin-placeholder")).toHaveCount(0);
+      } else {
+        await expect(page.getByTestId("linkedin-placeholder").first()).toBeVisible();
+        await expect(page.getByTestId("linkedin-link")).toHaveCount(0);
+      }
     }
   });
 
   test("download and contact controls explain why they are off", async ({ page }) => {
     await page.goto("/profile/");
     await expect(page.getByTestId("cv-download-unavailable")).toBeVisible();
-    await expect(page.getByTestId("contact-unavailable")).toBeVisible();
+    await expect(page.getByTestId(candidate.name ? "save-contact" : "contact-unavailable")).toBeVisible();
     await expect(page.getByTestId("pending-section")).toHaveCount(3);
   });
 
@@ -79,6 +89,50 @@ test.describe("placeholder honesty (no candidate details configured yet)", () =>
   });
 });
 
+test.describe("the locked account", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/account/");
+  });
+
+  test("riddle hints, near-miss reply, sign in, stay signed in, sign out", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: /Account locked/ })).toBeVisible();
+    if (candidate.name) await expect(page.locator("input[readonly]")).toHaveValue("daniel.ogunseye");
+    await page.getByTestId("forgot-password").click();
+    await expect(page.getByRole("list", { name: "Password hints" })).toContainText("Riddle");
+    await page.getByTestId("password-input").fill("password");
+    await page.getByTestId("sign-in").click();
+    await expect(page.getByTestId("login-feedback")).toContainText("number on the end");
+    await page.getByTestId("password-input").fill("password443");
+    await page.getByTestId("password-input").press("Enter");
+    await expect(page.getByTestId("account-title")).toBeFocused();
+    await expect(page.getByText("Admin (stolen)")).toBeVisible();
+    await noOverflow(page);
+    await page.reload();
+    await expect(page.getByTestId("account-title")).toBeVisible();
+    await page.getByTestId("sign-out").click();
+    await expect(page.getByTestId("password-input")).toBeVisible();
+  });
+
+  test("brute force trips a short lockout", async ({ page }) => {
+    for (let i = 0; i < 4; i++) {
+      await page.getByTestId("password-input").fill(`guess${i}`);
+      await page.getByTestId("sign-in").click();
+    }
+    await expect(page.getByTestId("login-feedback")).toContainText("Brute force detected");
+    await expect(page.getByTestId("sign-in")).toBeDisabled();
+    await expect(page.getByTestId("sign-in")).toHaveText(/Locked for \d+s/);
+  });
+
+  test("reachable from the landing page and the header", async ({ page }) => {
+    await page.goto("/", { waitUntil: "load" });
+    await page.getByTestId("landing-account").click();
+    await expect(page).toHaveURL(/\/account\/$/, { timeout: 15_000 });
+    await page.goto("/profile/", { waitUntil: "load" });
+    await page.getByTestId("nav-account").click();
+    await expect(page).toHaveURL(/\/account\/$/, { timeout: 15_000 });
+  });
+});
+
 async function playToVault(page: Page) {
   await page.getByTestId("start-heist").click();
   await page.getByTestId("log-04").click();
@@ -86,6 +140,15 @@ async function playToVault(page: Page) {
   await page.getByTestId("continue").click();
   await page.getByTestId("cipher-back").click();
   await page.getByTestId("submit-cipher").click();
+  await page.getByTestId("continue").click();
+}
+
+async function vaultToReveal(page: Page) {
+  for (const k of ["4", "7", "1"]) await page.getByTestId(`key-${k}`).click();
+  await page.getByTestId("key-enter").click();
+  await page.getByTestId("continue").click();
+  await page.getByTestId("password-input").fill("password443");
+  await page.getByTestId("sign-in").click();
   await page.getByTestId("continue").click();
 }
 
@@ -131,11 +194,28 @@ test.describe("the game", () => {
     await page.getByTestId("key-enter").click();
     await page.getByTestId("continue").click();
 
+    await expect(page.getByRole("heading", { name: "Break into the account" })).toBeFocused();
+    await expect(page.getByText("Stage 04 of 04")).toBeVisible();
+    await page.getByTestId("password-input").fill("password123");
+    await page.getByTestId("sign-in").click();
+    await expect(page.getByTestId("feedback")).toContainText("smarter");
+    await page.getByRole("button", { name: "Need a hint?" }).click();
+    await expect(page.getByRole("list", { name: "Hints" })).toContainText("Riddle");
+    await page.getByRole("button", { name: "Show password" }).click();
+    await expect(page.getByTestId("password-input")).toHaveAttribute("type", "text");
+    await page.getByTestId("password-input").fill("Password443");
+    await page.getByTestId("sign-in").click();
+    await expect(page.getByTestId("feedback")).toContainText("Signed in");
+    await page.getByTestId("continue").click();
+
     await expect(page.getByTestId("reveal-title")).toHaveText("YOU'VE CRACKED MY PROFILE.");
+    // 2 hints and 4 wrong guesses in this run.
+    await expect(page.getByTestId("rank")).toContainText("Recruit");
+    await expect(page.getByText(/Time \d+:\d{2}/)).toBeVisible();
     await expect(page.getByText("ACCESS GRANTED")).toBeVisible();
     await expect(page.getByText("The full CV is coming. The LinkedIn connection is ready now.")).toBeVisible();
     await expect(page.getByRole("link", { name: /Explore the profile/ })).toBeVisible();
-    await expect(page.getByTestId("linkedin-placeholder")).toBeVisible();
+    await expect(page.getByTestId(candidate.linkedinUrl ? "linkedin-link" : "linkedin-placeholder").last()).toBeVisible();
     await noOverflow(page);
   });
 
@@ -159,6 +239,15 @@ test.describe("the game", () => {
     await page.keyboard.type("471");
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("feedback")).toContainText("Code accepted");
+    await page.keyboard.press("Enter");
+    // Heading has focus: Tab past the read-only username into the password.
+    await expect(page.getByRole("heading", { name: "Break into the account" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await expect(page.getByTestId("password-input")).toBeFocused();
+    await page.keyboard.type("password443");
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("feedback")).toContainText("Signed in");
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("reveal-title")).toBeVisible();
   });
@@ -185,11 +274,17 @@ test.describe("the game", () => {
 
   test("replay from the reveal starts fresh", async ({ page }) => {
     await playToVault(page);
-    for (const k of ["4", "7", "1"]) await page.getByTestId(`key-${k}`).click();
-    await page.getByTestId("key-enter").click();
-    await page.getByTestId("continue").click();
+    await vaultToReveal(page);
     await page.getByTestId("replay").click();
     await expect(page.getByTestId("start-heist")).toBeVisible();
+  });
+
+  test("a perfect run ranks Ghost and signs you in on /account", async ({ page }) => {
+    await playToVault(page);
+    await vaultToReveal(page);
+    await expect(page.getByTestId("rank")).toContainText("Ghost");
+    await page.goto("/account/");
+    await expect(page.getByTestId("account-title")).toBeVisible();
   });
 
   test("feedback is announced through a live region", async ({ page }) => {

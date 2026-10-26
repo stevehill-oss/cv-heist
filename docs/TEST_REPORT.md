@@ -1,6 +1,23 @@
-# Test report, 25/10/2026
+# Test report, 25/10/2026 (updated 26/10/2026)
 
 All results below were actually run on Steve's laptop (Windows 11, Chrome via Playwright).
+
+## 26/10/2026: LinkedIn, name, locked account, game stage 04
+| Check | Result |
+|---|---|
+| Type check | Pass, 0 errors |
+| Unit tests (game, account, profile) | 43 of 43 pass |
+| End-to-end, 3 sizes | 69 of 69 pass |
+| Screenshots, 9 widths x 6 pages plus game stages | No overflow or console errors |
+
+New e2e coverage: real LinkedIn link on every page; `/account` riddle hints, near-miss reply,
+sign in, stays signed in after refresh, sign out; brute-force lockout; header and landing
+links; game stage 04 by tap and by keyboard only; rank and time on the reveal; a perfect
+run ranks Ghost and signs you in on `/account`.
+Fix: the landing-door test failed 3 in 15 runs. The doors did navigate, but sometimes too slowly
+under parallel load. The test now waits for the page to settle first, and passed 15 of 15.
+
+## 25/10/2026
 
 | Check | Command | Result |
 |---|---|---|

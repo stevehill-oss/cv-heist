@@ -11,8 +11,8 @@ const ready: CandidateProfile = {
 };
 
 describe("profile content model", () => {
-  it("current config is blocked from release until real details exist", () => {
-    const blockers = releaseBlockers(candidate, site);
+  it("a config without name or LinkedIn is blocked from release", () => {
+    const blockers = releaseBlockers({ ...candidate, name: null, linkedinUrl: null }, site);
     expect(blockers).toContain("Candidate name is not set.");
     expect(blockers).toContain("LinkedIn URL is not set.");
   });
@@ -43,7 +43,7 @@ describe("profile content model", () => {
   });
 
   it("vCard needs a name and escapes properly", () => {
-    expect(buildVCard(candidate, null)).toBeNull();
+    expect(buildVCard({ ...candidate, name: null }, null)).toBeNull();
     const card = buildVCard({ ...ready, name: "Alex de la Example" }, "https://a.b/profile/")!;
     expect(card).toContain("BEGIN:VCARD");
     expect(card).toContain("N:Example;Alex de la;;;");

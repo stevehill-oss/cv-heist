@@ -80,6 +80,10 @@ export default function Home() {
         <LinkedInLink />
         <p className="text-sm text-ink-2">No game required. The LinkedIn link is always one tap away.</p>
       </section>
+      <p className="mt-4 text-sm text-ink-2">
+        Think you can guess my password?{" "}
+        <Link href={ROUTES.account} className="text-amber underline-offset-4 hover:underline" data-testid="landing-account">Try the locked account</Link>.
+      </p>
     </div>
   );
 }

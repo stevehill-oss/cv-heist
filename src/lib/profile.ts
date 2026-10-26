@@ -82,6 +82,7 @@ export const ROUTES = {
   heist: "/heist",
   cv: "/cv",
   present: "/present",
+  account: "/account",
 } as const;
 
 export function displayName(p: CandidateProfile): string {

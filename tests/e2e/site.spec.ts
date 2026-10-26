@@ -73,7 +73,18 @@ test.describe("placeholder honesty", () => {
     await page.goto("/profile/");
     await expect(page.getByTestId("cv-download-unavailable")).toBeVisible();
     await expect(page.getByTestId(candidate.name ? "save-contact" : "contact-unavailable")).toBeVisible();
-    await expect(page.getByTestId("pending-section")).toHaveCount(3);
+    const pending = [candidate.skills, candidate.experience, candidate.projects].filter((l) => l.length === 0).length;
+    await expect(page.getByTestId("pending-section")).toHaveCount(pending);
+  });
+
+  test("profile shows the supplied About text, skills and certifications", async ({ page }) => {
+    test.skip(!candidate.summary, "no summary set");
+    await page.goto("/profile/");
+    await expect(page.getByTestId("summary").locator("p")).toHaveCount(2);
+    await expect(page.getByTestId("summary")).toContainText("third-party risk assessments");
+    await expect(page.getByText("Microsoft Sentinel", { exact: true })).toBeVisible();
+    await expect(page.getByText("CompTIA Security+", { exact: true })).toBeVisible();
+    await noOverflow(page);
   });
 
   test("QR screen points at the configured routes, or is marked preview without one", async ({ page, baseURL }) => {
@@ -96,7 +107,7 @@ test.describe("the locked account", () => {
 
   test("riddle hints, near-miss reply, sign in, stay signed in, sign out", async ({ page }) => {
     await expect(page.getByRole("heading", { name: /Account locked/ })).toBeVisible();
-    if (candidate.name) await expect(page.locator("input[readonly]")).toHaveValue("daniel.ogunseye");
+    if (candidate.name) await expect(page.locator("input[readonly]")).toHaveValue("daniel.o");
     await page.getByTestId("forgot-password").click();
     await expect(page.getByRole("list", { name: "Password hints" })).toContainText("Riddle");
     await page.getByTestId("password-input").fill("password");

@@ -91,7 +91,7 @@ export function isValidLogin(s: unknown): s is LoginState {
   return typeof l.attempts === "number" && typeof l.hintsShown === "number" && typeof l.lockedUntil === "number" && typeof l.success === "boolean";
 }
 
-/** "Daniel Ogunseye" becomes "daniel.ogunseye". */
+/** "Daniel Ogunseye" becomes "daniel.ogunseye"; "Daniel O." becomes "daniel.o". */
 export function accountUsername(name: string | null): string {
   if (!name) return "candidate";
   return name.toLowerCase().normalize("NFKD").replace(/[^a-z\s]/g, "").trim().split(/\s+/).join(".") || "candidate";

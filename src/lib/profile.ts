@@ -89,6 +89,11 @@ export function displayName(p: CandidateProfile): string {
   return p.name ?? "Name to be confirmed";
 }
 
+/** The summary split on blank lines, so each paragraph renders as its own <p>. */
+export function summaryParagraphs(p: CandidateProfile): string[] {
+  return (p.summary ?? "").split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+}
+
 export function initials(p: CandidateProfile): string {
   if (!p.name) return "??";
   return p.name

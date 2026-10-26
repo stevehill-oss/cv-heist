@@ -8,7 +8,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { CvLink, LinkedInLink, Tbc } from "@/components/ProfileLinks";
 import { candidate } from "@/content/candidate";
 import { ACCOUNT_SESSION_KEY, LOGIN_HINTS, accountUsername, initialLogin, showLoginHint, submitPassword } from "@/lib/account";
-import { ROUTES, displayName, initials } from "@/lib/profile";
+import { ROUTES, displayName, initials, summaryParagraphs } from "@/lib/profile";
 
 export function AccountPortal() {
   const [login, setLogin] = useState(initialLogin);
@@ -112,7 +112,9 @@ function AccountHome({ username, headingRef, onSignOut }: { username: string; he
             </div>
           </div>
           <div className="mt-5 border-t border-line/60 pt-5 text-ink-2">
-            {p.summary ? <p className="leading-relaxed">{p.summary}</p> : <Tbc>Introduction to be confirmed</Tbc>}
+            {p.summary ? (
+              <div className="space-y-3 leading-relaxed">{summaryParagraphs(p).map((para) => <p key={para}>{para}</p>)}</div>
+            ) : <Tbc>Introduction to be confirmed</Tbc>}
           </div>
           <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
             <div><dt className="eyebrow !text-[0.62rem]">Account</dt><dd className="mt-1 truncate font-mono">{username}</dd></div>

@@ -5,7 +5,7 @@ import { ArrowRight, FileIcon, LockIcon, ShieldIcon } from "@/components/icons";
 import { CvDownload, CvLink, LinkedInLink, Tbc } from "@/components/ProfileLinks";
 import { Pending, Section } from "@/components/ProfileSections";
 import { candidate } from "@/content/candidate";
-import { ROUTES, cvLabels, displayName, initials, publicItems } from "@/lib/profile";
+import { ROUTES, cvLabels, displayName, initials, publicItems, summaryParagraphs } from "@/lib/profile";
 
 export const metadata: Metadata = { title: "Professional Profile" };
 
@@ -29,7 +29,11 @@ export default function ProfilePage() {
           </h1>
           <p className="rise rise-3 mt-4 font-display text-xl text-cyan sm:text-2xl">{p.headline}</p>
           <div className="rise rise-3 mt-5 max-w-xl text-ink-2">
-            {p.summary ? <p className="text-lg leading-relaxed">{p.summary}</p> : (
+            {p.summary ? (
+              <div className="space-y-4 leading-relaxed sm:text-lg" data-testid="summary">
+                {summaryParagraphs(p).map((para) => <p key={para}>{para}</p>)}
+              </div>
+            ) : (
               <div className="flex flex-col items-start gap-3">
                 <Tbc>Professional introduction to be confirmed</Tbc>
                 <p>The introduction will be written from the CV and LinkedIn profile, and nothing goes here until it is checked.</p>

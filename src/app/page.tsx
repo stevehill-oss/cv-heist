@@ -20,7 +20,7 @@ export default function Home() {
           Two ways <span className="text-cyan">in.</span>
         </h1>
         <div className="rise rise-3 mt-5 flex flex-wrap items-center gap-3 text-lg text-ink-2">
-          {candidate.name ? <span className="text-ink">{candidate.name}.</span> : <Tbc>Name to be confirmed</Tbc>}
+          {candidate.name ? <span className="text-ink">{candidate.name.replace(/\.?$/, ".")}</span> : <Tbc>Name to be confirmed</Tbc>}
           <span>Pick how you want to meet.</span>
         </div>
       </section>

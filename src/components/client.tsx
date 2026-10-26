@@ -69,7 +69,7 @@ export function SaveContact({ className = "btn btn-secondary" }: { className?: s
     const href = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = href;
-    a.download = `${candidate.name!.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.vcf`;
+    a.download = `${candidate.name!.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase()}.vcf`;
     document.body.appendChild(a);
     a.click();
     a.remove();

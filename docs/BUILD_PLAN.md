@@ -10,10 +10,10 @@
 | 2b | Locked account (`/account`, password `password443`, riddle hints, playful lockout), game stage 04, timer, rank, brag share text | Done 26/10/2026 |
 
 ## Before the event (minimum)
-1. Candidate details into `src/content/candidate.ts`. Name and LinkedIn done 26/10; summary,
-   roles and skills still needed.
+1. Candidate details into `src/content/candidate.ts`. Name, LinkedIn, summary, skills and
+   certifications done 26/10; roles with dates still optional.
 2. ~~Deploy free, set `site.siteUrl`~~ Done 25/10: live on GitHub Pages. Redeploy with
    `npm run deploy:pages` after step 1.
-3. `npm run validate:release` passes.
+3. ~~`npm run validate:release` passes.~~ Passed 26/10/2026.
 4. ~~`npm run qr`~~ Done: final codes in `qr-codes/`. Scan both on a real phone.
 5. Optional: put `/present` on the candidate's phone home screen to show the QR live.

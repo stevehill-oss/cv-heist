@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { ArrowLeft } from "@/components/icons";
 import { CvDownload, LinkedInLink, Tbc } from "@/components/ProfileLinks";
 import { candidate } from "@/content/candidate";
-import { ROUTES, cvLabels, publicItems } from "@/lib/profile";
+import { ROUTES, cvLabels, publicItems, summaryParagraphs } from "@/lib/profile";
 
 export const metadata: Metadata = { title: "CV" };
 
@@ -53,7 +53,9 @@ export default function CvPage() {
           </ul>
         </header>
 
-        <Block title="Summary" empty={!p.summary}><p className="leading-relaxed">{p.summary}</p></Block>
+        <Block title="Summary" empty={!p.summary}>
+          <div className="space-y-3 leading-relaxed">{summaryParagraphs(p).map((para) => <p key={para}>{para}</p>)}</div>
+        </Block>
 
         <Block title="Experience" empty={experience.length === 0}>
           <ol className="space-y-5">

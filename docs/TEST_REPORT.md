@@ -2,6 +2,15 @@
 
 All results below were actually run on Steve's laptop (Windows 11, Chrome via Playwright).
 
+## 26/10/2026 (later): "Daniel O.", About text, skills, certifications
+| Check | Result |
+|---|---|
+| Type check | Pass, 0 errors |
+| Unit tests | 43 of 43 pass |
+| End-to-end, 3 sizes | 72 of 72 pass (new test: About text, skills, certifications) |
+| Screenshots, 9 widths x 6 pages plus game stages | No overflow or console errors |
+| Release gate (`validate:release`) | Passes |
+
 ## 26/10/2026: LinkedIn, name, locked account, game stage 04
 | Check | Result |
 |---|---|

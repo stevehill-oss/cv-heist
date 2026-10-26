@@ -60,6 +60,7 @@ describe("account password", () => {
 describe("account helpers", () => {
   it("builds a username from the name", () => {
     expect(accountUsername("Daniel Ogunseye")).toBe("daniel.ogunseye");
+    expect(accountUsername("Daniel O.")).toBe("daniel.o");
     expect(accountUsername(null)).toBe("candidate");
   });
 
